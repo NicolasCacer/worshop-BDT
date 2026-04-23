@@ -70,9 +70,27 @@ class ETL:
                 print("❌ No se encontraron archivos CSV")
                 return
             
-            dfs = [pd.read_csv(f, encoding='latin-1') for f in files]  # latin-1 por si hay caracteres especiales
+            dfs = []
+            for f in files:
+                df_temp = pd.read_csv(f, encoding='latin-1')
+                df_temp['country'] = os.path.basename(f)[:2].upper()  # extrae 'CA', 'US', 'GB', etc.
+                dfs.append(df_temp)
+
             df = pd.concat(dfs, ignore_index=True)
-            print(f"✅ Archivo generado con {len(df)} filas")
+            print(f"✅ Datos concatenados: {len(df)} filas")
+
+            # Top 100 videos globales por vistas
+            top100_ids = (
+                df.groupby('video_id')['views']
+                .sum()
+                .sort_values(ascending=False)
+                .head(100)
+                .index
+            )
+
+            df = df[df['video_id'].isin(top100_ids)]
+            df = df.reset_index(drop=True)
+            print(f"✅ Top 100 videos globales: {len(df)} filas")
             return df
         except Exception as e:
             print(f"Error al concatenar los datos: {e}")
@@ -82,8 +100,8 @@ class ETL:
     @timer
     def standardize_dates(self, df):
         try:
-            df['trending_date'] = pd.to_datetime(df['trending_date'], format='%y.%d.%m')
-            df['publish_time'] = pd.to_datetime(df['publish_time']).dt.tz_localize(None)  # elimina el timezone
+            df['trending_date'] = pd.to_datetime(df['trending_date'], format='%y.%d.%m') + pd.Timedelta(hours=23, minutes=59, seconds=59)
+            df['publish_time'] = pd.to_datetime(df['publish_time'], format='ISO8601').dt.tz_localize(None)
             return df
         except Exception as e:
             print(f"Error al estandarizar las fechas: {e}")
@@ -93,7 +111,9 @@ class ETL:
     @timer
     def calculate_trending_period(self, df):
         try:
-            df['trending_period'] = (df['trending_date'] - df['publish_time']).dt.days
+            diff = df['trending_date'] - df['publish_time']
+            df['trending_period'] = (diff.dt.total_seconds() / 86400).clip(lower=0).round(2) # 86400 segundos en un día, clip para evitar valores negativos, round para limitar decimales
+            print(f"Muestra trending_period:\n{df[['trending_date', 'publish_time', 'trending_period']].head()}")
             return df
         except Exception as e:
             print(f"Error al calcular el periodo de tendencia: {e}")
@@ -104,13 +124,18 @@ class ETL:
     @timer
     def run(self):
         """Ejecuta el proceso ETL completo."""
-        task(self.import_dataset, task_run_name="extract-kaggle", retries=3, retry_delay_seconds=5)()
-        df = task(self.concatenate_data, task_run_name="concat-data", retries=2, retry_delay_seconds=3)()
-        df = task(self.clean_data, task_run_name="clean-data", retries=2, retry_delay_seconds=3)(df)
-        df = task(self.standardize_dates, task_run_name="standardize-dates", retries=2, retry_delay_seconds=3)(df)
-        df = task(self.calculate_trending_period, task_run_name="calculate-trending-period", retries=2, retry_delay_seconds=3)(df)
-        df.to_csv('youtube_trending_global.csv', index=False) # reescribir el archivo concatenado por versión limpia
-    
+        try:
+            task(self.import_dataset, task_run_name="extract-kaggle", retries=3, retry_delay_seconds=5)()
+            df = task(self.concatenate_data, task_run_name="concat-data", retries=2, retry_delay_seconds=3)()
+            df = task(self.clean_data, task_run_name="clean-data", retries=2, retry_delay_seconds=3)(df)
+            df = task(self.standardize_dates, task_run_name="standardize-dates", retries=2, retry_delay_seconds=3)(df)
+            df = task(self.calculate_trending_period, task_run_name="calculate-trending-period", retries=2, retry_delay_seconds=3)(df)
+            df.to_csv('youtube_trending_global.csv', index=False) # reescribir el archivo concatenado por versión limpia
+            print("✅ Proceso ETL completado. Archivo guardado como 'youtube_trending_global.csv'")
+        except Exception as e:
+            print(f"Error en el proceso ETL: {e}")
+            raise
+
 if __name__ == "__main__":
     etl = ETL()
     etl.run()
