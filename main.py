@@ -1,9 +1,18 @@
 # main.py
-import webbrowser
 import os
+import webbrowser
+from urllib.parse import quote
+
 from ETL import ETL
 from dashboard import build_dashboard
 from geo_map import build_geo_dashboard
+
+
+def file_url(path: str) -> str:
+    """Convierte una ruta local en un enlace file:// válido para el navegador."""
+    abs_path = os.path.abspath(path)
+    return "file:///" + quote(abs_path.replace(os.sep, "/"), safe=":/")
+
 
 def main():
     print("=" * 60)
@@ -23,21 +32,25 @@ def main():
     print("\n🗺  [3/3] Generando mapa georreferenciado...")
     build_geo_dashboard()
 
-    # ── Abrir archivos generados en el navegador ──
-    dashboard_path = os.path.abspath('dashboard.html')
-    geomap_path    = os.path.abspath('geo_map.html')
+    dashboard_url = file_url("dashboard.html")
+    geomap_url = file_url("geo_map.html")
 
     print("\n" + "=" * 60)
     print("  ✅ PIPELINE COMPLETADO")
     print("  📁 Archivos generados:")
-    print(f"     · youtube_trending_global.csv")
-    print(f"     · {dashboard_path}")
-    print(f"     · {geomap_path}")
+    print("     · youtube_trending_global.csv")
+    print("     · dashboard.html")
+    print("     · geo_map.html")
+    print("     · geo_map_inner.html")
+    print("\n  🌐 Enlaces:")
+    print(f"     · Dashboard: {dashboard_url}")
+    print(f"     · Geo Map:   {geomap_url}")
     print("=" * 60)
 
     print("\n🌐 Abriendo archivos en el navegador...")
-    webbrowser.open(f"file://{dashboard_path}")
-    webbrowser.open(f"file://{geomap_path}")
+    webbrowser.open(dashboard_url)
+    webbrowser.open(geomap_url)
+
 
 if __name__ == "__main__":
     main()

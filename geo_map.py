@@ -1,6 +1,9 @@
-import pandas as pd
-import folium
-import math
+import pandas as pd          # Manipulación de datos en estructuras tipo DataFrame
+import folium                # Generación de mapas interactivos (basado en Leaflet)
+import math                  # Funciones matemáticas (usado para escalar el tamaño de los marcadores)
+import os                    # Manejo de rutas y sistema de archivos (crear paths absolutos)
+import webbrowser            # Permite abrir automáticamente el HTML generado en el navegador
+from urllib.parse import quote  # Codifica la ruta del archivo para construir un URL válido (file://)
 
 # =========================================================================================
 #      Coordenadas y nombres de países del dataset
@@ -52,14 +55,14 @@ def truncate(text, limit=75):
 # =========================================================================================
 
 def get_country_stats(df):
-    stats = {}
+    country_stats = {}
 
     for country, group in df.groupby('country'):
         top_video_row = group.loc[group['views'].idxmax()]
         top_category = group.groupby('category')['views'].sum().idxmax()
 
-        total_views = group['views'].sum()
-        total_likes = group['likes'].sum()
+        total_views    = group['views'].sum()
+        total_likes    = group['likes'].sum()
         total_dislikes = group['dislikes'].sum()
 
         polarity = total_likes - total_dislikes
@@ -68,21 +71,21 @@ def get_country_stats(df):
             if (total_likes + total_dislikes) > 0 else 0
         )
 
-        stats[country] = {
-            'top_video_title': top_video_row['title'],
-            'top_video_views': int(top_video_row['views']),
+        country_stats[country] = {
+            'top_video_title':   top_video_row['title'],
+            'top_video_views':   int(top_video_row['views']),
             'top_video_channel': top_video_row['channel_title'],
-            'top_video_id': top_video_row['video_id'],
-            'top_category': top_category,
-            'total_views': int(total_views),
-            'total_likes': int(total_likes),
-            'total_dislikes': int(total_dislikes),
-            'polarity': int(polarity),
-            'polarity_pct': polarity_pct,
-            'videos': group['video_id'].nunique(),
+            'top_video_id':      top_video_row['video_id'],
+            'top_category':      top_category,
+            'total_views':       int(total_views),
+            'total_likes':       int(total_likes),
+            'total_dislikes':    int(total_dislikes),
+            'polarity':          int(polarity),
+            'polarity_pct':      polarity_pct,
+            'videos':            group['video_id'].nunique(),
         }
 
-    return stats
+    return country_stats
 
 
 # =========================================================================================
@@ -261,15 +264,19 @@ def build_map(stats):
 def build_geo_dashboard():
     print("⏳ Cargando datos...")
     df = load_data()
-    stats = get_country_stats(df)
+    country_stats = get_country_stats(df)
 
-    print("Países en CSV:", sorted(df['country'].unique()))
-    print("Países con coordenadas:", sorted(COUNTRY_COORDS.keys()))
-    print("Países sin coordenadas:", set(df['country'].unique()) - set(COUNTRY_COORDS.keys()))
+    # Advertir si algún país del CSV no tiene coordenadas definidas
+    sin_coords = set(df['country'].unique()) - set(COUNTRY_COORDS.keys())
+    if sin_coords:
+        print(f"   ⚠️ Países sin coordenadas (se omitirán del mapa): {sin_coords}")
 
-    print("Construyendo mapa...")
-    m = build_map(stats)
+    print("🗺  Construyendo mapa georreferenciado...")
+
+    # geo_map_inner.html: mapa Folium embebido vía iframe
+    m = build_map(country_stats)
     m.save('geo_map_inner.html')
+
     html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -437,8 +444,15 @@ def build_geo_dashboard():
 </html>
 """
 
+    # geo_map.html: wrapper con header, leyenda y nota — carga geo_map_inner.html via iframe
     with open('geo_map.html', 'w', encoding='utf-8') as f:
         f.write(html)
+
+    abs_path = os.path.abspath('geo_map.html')
+    file_url = 'file:///' + quote(abs_path.replace(os.sep, '/'), safe=':/')
+    print(f"✅ Mapa guardado en 'geo_map.html'")
+    print(f"🌐 Abre el mapa aquí: {file_url}")
+    webbrowser.open(file_url)
 
 if __name__ == "__main__":
     build_geo_dashboard()

@@ -1,7 +1,11 @@
+import webbrowser
+
 import pandas as pd
+import os
 import plotly.graph_objects as go
 import numpy as np
 from plotly.subplots import make_subplots
+from urllib.parse import quote
 
 # =========================================================================================
 #      Paleta y estilo global
@@ -175,12 +179,9 @@ def fig_top_videos_by_country(df):
 # =========================================================================================
 
 def fig_categories_by_country(df):
-    pivot       = df.groupby(['country', 'category'])['views'].sum().reset_index()
+    pivot = df.groupby(['country', 'category'])['views'].sum().reset_index()
     pivot_table = pivot.pivot(index='country', columns='category', values='views').fillna(0)
-    pivot_M     = pivot_table / 1_000_000
-
-    # Fijar escala de color en percentil 95 para que el outlier no aplaste el gradiente
-    valores = pivot_M.values.flatten()
+    pivot_M = pivot_table / 1_000_000
 
     z_real = pivot_M.values
     z_log = np.log1p(z_real)
@@ -214,6 +215,7 @@ def fig_categories_by_country(df):
         xaxis=dict(**AXIS_STYLE, tickangle=-35),
         yaxis=dict(**AXIS_STYLE),
     )
+
     return fig
 
 # =========================================================================================
@@ -353,45 +355,57 @@ def fig_interaction_by_category(df):
 def fig_correlation(df):
     from scipy import stats
 
-    # ── Agregar por video único para evitar solapamiento ──
+    # ── Una fila por video: primera aparición como tendencia ──
     sample = (
-        df.groupby('video_id').agg(
-            trending_period=('trending_period', 'mean'),
-            views=('views',          'max'),
-            category=('category',    'first'),
-            title=('title',          'first'),
-        ).reset_index()
-        .dropna()
+        df.sort_values(["video_id", "trending_date"])
+        .groupby("video_id")
+        .first()
+        .reset_index()
+        [["video_id", "trending_period", "views", "category", "title"]]
+        .dropna(subset=["trending_period", "views"])
     )
-    sample = sample[sample['trending_period'] >= 0]
+
+    sample = sample[sample["trending_period"] > 0]
     sample['views_M'] = (sample['views'] / 1_000_000).round(2)
 
     n = len(sample)
+
     if n <= 5000:
         _, p_trending = stats.shapiro(sample['trending_period'])
-        _, p_views    = stats.shapiro(sample['views'])
+        _, p_views = stats.shapiro(sample['views'])
     else:
         _, p_trending = stats.normaltest(sample['trending_period'])
-        _, p_views    = stats.normaltest(sample['views'])
+        _, p_views = stats.normaltest(sample['views'])
 
     both_normal = p_trending > 0.05 and p_views > 0.05
+
     if both_normal:
-        corr, p_value = stats.pearsonr(sample['trending_period'], sample['views'])
+        corr, p_value = stats.pearsonr(
+            sample['trending_period'],
+            sample['views']
+        )
         method = "Pearson"
     else:
-        corr, p_value = stats.spearmanr(sample['trending_period'], sample['views'])
+        corr, p_value = stats.spearmanr(
+            sample['trending_period'],
+            sample['views']
+        )
         method = "Spearman"
 
-    sig_text  = "significativa" if p_value < 0.05 else "no significativa"
+    sig_text = "significativa" if p_value < 0.05 else "no significativa"
     direction = "negativa" if corr < 0 else "positiva"
 
     unique_cats = sample['category'].unique()
-    color_map   = {cat: CATEGORY_COLORS[i % len(CATEGORY_COLORS)] for i, cat in enumerate(unique_cats)}
+    color_map = {
+        cat: CATEGORY_COLORS[i % len(CATEGORY_COLORS)]
+        for i, cat in enumerate(unique_cats)
+    }
 
     fig = go.Figure()
 
     for cat in unique_cats:
         sub = sample[sample['category'] == cat]
+
         fig.add_trace(go.Scatter(
             x=sub['trending_period'],
             y=sub['views_M'],
@@ -399,47 +413,63 @@ def fig_correlation(df):
             name=cat,
             marker=dict(
                 color=color_map[cat],
-                size=11,           # más grande porque hay menos puntos
-                opacity=0.85,      # más opaco porque no se solapan
+                size=11,
+                opacity=0.85,
                 line=dict(width=1, color='rgba(255,255,255,0.3)')
             ),
             hovertemplate=(
                 "<b>%{customdata}</b><br>"
-                "Días hasta tendencia: %{x:.1f}<br>"
-                "Vistas: %{y:.2f}M<br>"
+                "Días hasta primera tendencia: %{x:.1f}<br>"
+                "Vistas en primera aparición: %{y:.2f}M<br>"
                 f"Categoría: {cat}"
                 "<extra></extra>"
             ),
             customdata=sub['title'].str[:50]
         ))
 
-    # Línea de tendencia
-    slope, intercept, _, _, _ = stats.linregress(sample['trending_period'], sample['views_M'])
-    x_line = pd.Series([sample['trending_period'].min(), sample['trending_period'].max()])
-    y_line  = slope * x_line + intercept
+    # Línea de tendencia visual
+    slope, intercept, _, _, _ = stats.linregress(
+        sample['trending_period'],
+        sample['views_M']
+    )
+
+    x_line = pd.Series([
+        sample['trending_period'].min(),
+        sample['trending_period'].max()
+    ])
+
+    y_line = slope * x_line + intercept
 
     fig.add_trace(go.Scatter(
         x=x_line,
         y=y_line,
         mode='lines',
         name='Tendencia lineal',
-        line=dict(color=COLORS['accent2'], dash='dash', width=2),  # más visible
+        line=dict(color=COLORS['accent2'], dash='dash', width=2),
         showlegend=True
     ))
 
     fig.add_annotation(
-        x=0.98, y=0.97,
-        xref='paper', yref='paper',
-        xanchor='right', yanchor='top',
+        x=0.98,
+        y=0.97,
+        xref='paper',
+        yref='paper',
+        xanchor='right',
+        yanchor='top',
         text=(
             f"<b>Correlación {method}</b><br>"
             f"r = {corr:+.4f}<br>"
             f"p-value = {p_value:.4f}<br>"
             f"n = {n} videos únicos<br>"
+            f"Primera aparición como tendencia<br>"
             f"Correlación {direction} y {sig_text}"
         ),
         showarrow=False,
-        font=dict(family='DM Mono, monospace', size=13, color=COLORS['accent2']),
+        font=dict(
+            family='DM Mono, monospace',
+            size=13,
+            color=COLORS['accent2']
+        ),
         bgcolor=COLORS['surface'],
         bordercolor=COLORS['accent2'],
         borderwidth=1,
@@ -449,11 +479,12 @@ def fig_correlation(df):
 
     fig.update_layout(
         **CHART_LAYOUT,
-        title=f'📈  CORRELACIÓN TRENDING PERIOD vs VISTAS — Método: {method} · {n} videos únicos',
+        title=f'📈  CORRELACIÓN PRIMERA APARICIÓN EN TENDENCIA vs VISTAS — Método: {method} · {n} videos únicos',
         height=540,
-        xaxis=dict(**AXIS_STYLE, title='Días promedio hasta convertirse en tendencia'),
-        yaxis=dict(**AXIS_STYLE, title='Vistas máximas (Millones)'),
+        xaxis=dict(**AXIS_STYLE, title='Días hasta la primera aparición en tendencia'),
+        yaxis=dict(**AXIS_STYLE, title='Vistas en primera aparición (Millones)'),
     )
+
     return fig
 
 # =========================================================================================
@@ -810,8 +841,14 @@ def build_dashboard():
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
 
+    output_path = 'dashboard.html'
+
+    abs_path = os.path.abspath(output_path)
+    file_url = 'file:///' + quote(abs_path.replace(os.sep, '/'), safe=':/')
+
     print(f"✅ Dashboard guardado en '{output_path}'")
-    print("💡 Ábrelo en tu navegador para ver el dashboard interactivo")
+    print(f"🌐 Abre el dashboard aquí: {file_url}")
+    webbrowser.open(file_url)
 
 if __name__ == "__main__":
     build_dashboard()
