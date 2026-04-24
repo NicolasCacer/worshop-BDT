@@ -5,7 +5,7 @@
 data/
 youtube_trending_global.csv
 
-# Archivos generados
+# Archivos generados por el proyecto
 *.html
 *.csv
 
