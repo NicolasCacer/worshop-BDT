@@ -4,7 +4,10 @@
 # Datos descargados
 data/
 youtube_trending_global.csv
+
+# Archivos generados
 *.html
+*.csv
 
 # Python
 __pycache__/
