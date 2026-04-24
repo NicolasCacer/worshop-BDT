@@ -1,0 +1,8 @@
+pandas==2.0.0
+kaggle==1.5.13
+prefect==2.14.0
+pymongo==4.6.0
+scipy==1.11.0
+plotly==5.17.0
+folium==0.14.0
+python-dotenv==1.0.0
