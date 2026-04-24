@@ -4,913 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Trending · Geo Map</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            background: #080C14;
-            color: #E8EDF5;
-            font-family: 'DM Sans', sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
 
-        header {
-            padding: 1.2rem 2.5rem;
-            border-bottom: 1px solid #1C2A3A;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-            background: #0D1421;
-        }
+    body {
+        background: #080C14;
+        color: #E8EDF5;
+        font-family: 'DM Sans', sans-serif;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .header-left {
-            display: flex;
-            align-items: baseline;
-            gap: 1rem;
-        }
+    header {
+        height: 74px;
+        padding: 1.1rem 2.5rem;
+        border-bottom: 1px solid #1C2A3A;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        background: linear-gradient(90deg, #0D1421, #101A2B);
+        gap: 2rem;
+        z-index: 9999;
+        position: relative;
+    }
 
-        .header-left h1 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
-            letter-spacing: 4px;
-            color: #E8EDF5;
-        }
+    .header-left {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
 
-        .header-left h1 span { color: #FF3B30; }
+    .header-left h1 {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.1rem;
+        letter-spacing: 4px;
+        color: #E8EDF5;
+    }
 
-        .header-left p {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            color: #5A6A7E;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
+    .header-left h1 span {
+        color: #FF3B30;
+    }
 
-        .legend {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
+    .header-left p {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem;
+        color: #9BAABD;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.7rem;
-            color: #5A6A7E;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+    .legend {
+        display: flex;
+        gap: 1.2rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
 
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem;
+        color: #9BAABD;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
 
-        .map-container {
-            flex: 1;
-            position: relative;
-        }
+    .legend-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
 
-        .map-container iframe,
-        .map-container > div {
-            width: 100% !important;
-            height: 100% !important;
-            position: absolute;
-            inset: 0;
-        }
+    .map-container {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .map-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+
+    .note {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
+        z-index: 9998;
+        max-width: 420px;
+        background: rgba(13,20,33,0.92);
+        border: 1px solid #1C2A3A;
+        color: #9BAABD;
+        padding: 10px 13px;
+        border-radius: 8px;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 1px;
+    }
     </style>
 </head>
+
 <body>
 
 <header>
     <div class="header-left">
         <h1>YOUTUBE <span>GEO</span> MAP</h1>
-        <p>Video más visto · Categoría más vista · Por país</p>
+        <p>Resumen georreferenciado · Video · Categoría · Polaridad</p>
     </div>
+
     <div class="legend">
         <div class="legend-item">
-            <div class="legend-dot" style="background:#FF3B30"></div>
-            Video más visto
+            <div class="legend-dot" style="background:#00E5A0"></div>
+            Polaridad positiva
         </div>
+
         <div class="legend-item">
-            <div class="legend-dot" style="background:#0AF5B0"></div>
-            Categoría más vista
+            <div class="legend-dot" style="background:#FF3B30"></div>
+            Polaridad negativa
         </div>
-        <div class="legend-item" style="color:#5A6A7E; font-size:0.6rem;">
-            Clic en marcador para detalles
+
+        <div class="legend-item">
+            Tamaño = vistas totales
+        </div>
+
+        <div class="legend-item">
+            Clic para detalles
         </div>
     </div>
 </header>
 
 <div class="map-container">
-    <div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc="&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-    
-    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
-    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
-    
-            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
-                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
-            &lt;style&gt;
-                #map_ab29283ed043076bf6193be49466c047 {
-                    position: relative;
-                    width: 100.0%;
-                    height: 100.0%;
-                    left: 0.0%;
-                    top: 0.0%;
-                }
-                .leaflet-container { font-size: 1rem; }
-            &lt;/style&gt;
-
-            &lt;style&gt;html, body {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-            }
-            &lt;/style&gt;
-
-            &lt;style&gt;#map {
-                position:absolute;
-                top:0;
-                bottom:0;
-                right:0;
-                left:0;
-                }
-            &lt;/style&gt;
-
-            &lt;script&gt;
-                L_NO_TOUCH = false;
-                L_DISABLE_3D = false;
-            &lt;/script&gt;
-
-        
-&lt;/head&gt;
-&lt;body&gt;
-    
-    
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_ab29283ed043076bf6193be49466c047&quot; &gt;&lt;/div&gt;
-        
-&lt;/body&gt;
-&lt;script&gt;
-    
-    
-            var map_ab29283ed043076bf6193be49466c047 = L.map(
-                &quot;map_ab29283ed043076bf6193be49466c047&quot;,
-                {
-                    center: [20.0, 0.0],
-                    crs: L.CRS.EPSG3857,
-                    ...{
-  &quot;zoom&quot;: 2,
-  &quot;zoomControl&quot;: true,
-  &quot;preferCanvas&quot;: false,
-}
-
-                }
-            );
-
-            
-
-        
-    
-            var tile_layer_e3a918c6cb5c3d36ff57bf7fba0f5dcb = L.tileLayer(
-                &quot;https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png&quot;,
-                {
-  &quot;minZoom&quot;: 0,
-  &quot;maxZoom&quot;: 19,
-  &quot;maxNativeZoom&quot;: 19,
-  &quot;noWrap&quot;: false,
-  &quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e \u0026copy; \u003ca href=\&quot;https://carto.com/\&quot;\u003eCARTO\u003c/a\u003e&quot;,
-  &quot;subdomains&quot;: &quot;abc&quot;,
-  &quot;detectRetina&quot;: false,
-  &quot;tms&quot;: false,
-  &quot;opacity&quot;: 1,
-}
-
-            );
-        
-    
-            tile_layer_e3a918c6cb5c3d36ff57bf7fba0f5dcb.addTo(map_ab29283ed043076bf6193be49466c047);
-        
-    
-            var feature_group_a68422f32ce3f35d5a7c27291526c676 = L.featureGroup(
-                {
-}
-            );
-        
-    
-            var circle_marker_5504e0a7d0192344356e098f8021fc4f = L.circleMarker(
-                [56.1304, -106.3468],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_8897c48dfcc71356c05ac7ba2a0ccbf2 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_6199104fdb1450de42621bd2de185dad = $(`&lt;div id=&quot;html_6199104fdb1450de42621bd2de185dad&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · Canada                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 137,843,120 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_8897c48dfcc71356c05ac7ba2a0ccbf2.setContent(html_6199104fdb1450de42621bd2de185dad);
-            
-        
-
-        circle_marker_5504e0a7d0192344356e098f8021fc4f.bindPopup(popup_8897c48dfcc71356c05ac7ba2a0ccbf2)
-        ;
-
-        
-    
-    
-            circle_marker_5504e0a7d0192344356e098f8021fc4f.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;Canada&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_eade6e254f1abb2a65158059d61dcd8b = L.circleMarker(
-                [51.1657, 10.4515],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_b87fa75c327e2f4bcb470e9c93620288 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_acf03286273fcb88311147cdc23c8647 = $(`&lt;div id=&quot;html_acf03286273fcb88311147cdc23c8647&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · Germany                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 113,876,217 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_b87fa75c327e2f4bcb470e9c93620288.setContent(html_acf03286273fcb88311147cdc23c8647);
-            
-        
-
-        circle_marker_eade6e254f1abb2a65158059d61dcd8b.bindPopup(popup_b87fa75c327e2f4bcb470e9c93620288)
-        ;
-
-        
-    
-    
-            circle_marker_eade6e254f1abb2a65158059d61dcd8b.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;Germany&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_1071b2cda9c9318de2ad3578c0aa8c0b = L.circleMarker(
-                [46.2276, 2.2137],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_a06ccaaea7f5f057f9b8e4825a3894fe = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_f76e4fcc35a0b49e2ec423d797627b56 = $(`&lt;div id=&quot;html_f76e4fcc35a0b49e2ec423d797627b56&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · France                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 100,911,567 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_a06ccaaea7f5f057f9b8e4825a3894fe.setContent(html_f76e4fcc35a0b49e2ec423d797627b56);
-            
-        
-
-        circle_marker_1071b2cda9c9318de2ad3578c0aa8c0b.bindPopup(popup_a06ccaaea7f5f057f9b8e4825a3894fe)
-        ;
-
-        
-    
-    
-            circle_marker_1071b2cda9c9318de2ad3578c0aa8c0b.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;France&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_eabd19d77b2d311b59e87b920d672d89 = L.circleMarker(
-                [55.3781, -3.436],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_ab750384b63ada9cd6f07d6428c241d4 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_0f50454e7564dc07a1934d57c5854044 = $(`&lt;div id=&quot;html_0f50454e7564dc07a1934d57c5854044&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · United Kingdom                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     Nicky Jam x J. Balvin - X (EQUIS) | Video Oficial | Prod. Af...                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 NickyJamTV                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 424,538,912 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=_I_D_8Z4sJE&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_ab750384b63ada9cd6f07d6428c241d4.setContent(html_0f50454e7564dc07a1934d57c5854044);
-            
-        
-
-        circle_marker_eabd19d77b2d311b59e87b920d672d89.bindPopup(popup_ab750384b63ada9cd6f07d6428c241d4)
-        ;
-
-        
-    
-    
-            circle_marker_eabd19d77b2d311b59e87b920d672d89.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;United Kingdom&lt;/b&gt;&lt;br&gt;📺 Nicky Jam x J. Balvin - X (EQUIS) | Vide...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_275a81763cfc70828f1f3253d6be6160 = L.circleMarker(
-                [20.5937, 78.9629],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_bfbf28388d0198e060018ee653e7f0a1 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_ca196e1efee660b94d2eef88b17fee7f = $(`&lt;div id=&quot;html_ca196e1efee660b94d2eef88b17fee7f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · India                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 125,432,237 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_bfbf28388d0198e060018ee653e7f0a1.setContent(html_ca196e1efee660b94d2eef88b17fee7f);
-            
-        
-
-        circle_marker_275a81763cfc70828f1f3253d6be6160.bindPopup(popup_bfbf28388d0198e060018ee653e7f0a1)
-        ;
-
-        
-    
-    
-            circle_marker_275a81763cfc70828f1f3253d6be6160.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;India&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_be74c111731aea25a7a0774042022b70 = L.circleMarker(
-                [36.2048, 138.2529],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_46cfb3fb0e8fc8c3d3fcea6e1627ad7f = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_eadbe3beda665f9cb8956f737d5b800d = $(`&lt;div id=&quot;html_eadbe3beda665f9cb8956f737d5b800d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · Japan                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     BTS (방탄소년단) &#x27;FAKE LOVE&#x27; Official MV                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 ibighit                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 62,796,390 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=7C2z4GqqS5E&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_46cfb3fb0e8fc8c3d3fcea6e1627ad7f.setContent(html_eadbe3beda665f9cb8956f737d5b800d);
-            
-        
-
-        circle_marker_be74c111731aea25a7a0774042022b70.bindPopup(popup_46cfb3fb0e8fc8c3d3fcea6e1627ad7f)
-        ;
-
-        
-    
-    
-            circle_marker_be74c111731aea25a7a0774042022b70.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;Japan&lt;/b&gt;&lt;br&gt;📺 BTS (방탄소년단) &#x27;FAKE LOVE&#x27; Official MV...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_45bc53da74433de47cd5fc2b672e1262 = L.circleMarker(
-                [35.9078, 127.7669],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_719612e7d7fa550e8787ed5ff1df8a80 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_087a533de86ddf2f05af6e0a0a59ede3 = $(`&lt;div id=&quot;html_087a533de86ddf2f05af6e0a0a59ede3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · South Korea                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 113,876,217 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_719612e7d7fa550e8787ed5ff1df8a80.setContent(html_087a533de86ddf2f05af6e0a0a59ede3);
-            
-        
-
-        circle_marker_45bc53da74433de47cd5fc2b672e1262.bindPopup(popup_719612e7d7fa550e8787ed5ff1df8a80)
-        ;
-
-        
-    
-    
-            circle_marker_45bc53da74433de47cd5fc2b672e1262.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;South Korea&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_d1890e0a05adf91aa6cfc6f9e305ac5e = L.circleMarker(
-                [23.6345, -102.5528],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_317b5f3cf97ccc93ae5d4faefa850d94 = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_ad904db4cdebd29496605c42cd64513a = $(`&lt;div id=&quot;html_ad904db4cdebd29496605c42cd64513a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · Mexico                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     YouTube Rewind: The Shape of 2017 | #YouTubeRewind                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 YouTube Spotlight                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 100,912,384 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=FlsCjmMhFmw&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_317b5f3cf97ccc93ae5d4faefa850d94.setContent(html_ad904db4cdebd29496605c42cd64513a);
-            
-        
-
-        circle_marker_d1890e0a05adf91aa6cfc6f9e305ac5e.bindPopup(popup_317b5f3cf97ccc93ae5d4faefa850d94)
-        ;
-
-        
-    
-    
-            circle_marker_d1890e0a05adf91aa6cfc6f9e305ac5e.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;Mexico&lt;/b&gt;&lt;br&gt;📺 YouTube Rewind: The Shape of 2017 | #You...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_1bcafba2d361a42c9fdbed7641a4d6b4 = L.circleMarker(
-                [61.524, 105.3188],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_3e9449d4aaf01b8c59cb6c4b92a9bf7b = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_2f8748b01f8dc2581ea00da1907da17e = $(`&lt;div id=&quot;html_2f8748b01f8dc2581ea00da1907da17e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · Russia                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     BTS (방탄소년단) &#x27;FAKE LOVE&#x27; Official MV                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 ibighit                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 62,796,390 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=7C2z4GqqS5E&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_3e9449d4aaf01b8c59cb6c4b92a9bf7b.setContent(html_2f8748b01f8dc2581ea00da1907da17e);
-            
-        
-
-        circle_marker_1bcafba2d361a42c9fdbed7641a4d6b4.bindPopup(popup_3e9449d4aaf01b8c59cb6c4b92a9bf7b)
-        ;
-
-        
-    
-    
-            circle_marker_1bcafba2d361a42c9fdbed7641a4d6b4.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;Russia&lt;/b&gt;&lt;br&gt;📺 BTS (방탄소년단) &#x27;FAKE LOVE&#x27; Official MV...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_1f5dc7cf92efb1e3f63d2998c8e90afa = L.circleMarker(
-                [37.0902, -95.7129],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#FF3B30&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#FF3B30&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 14, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_a68422f32ce3f35d5a7c27291526c676);
-        
-    
-        var popup_a4aadec1b945c23fcabee237bf13813b = L.popup({
-  &quot;maxWidth&quot;: 300,
-});
-
-        
-            
-                var html_18b727a4ed17f8a4486a3fed7c9cd660 = $(`&lt;div id=&quot;html_18b727a4ed17f8a4486a3fed7c9cd660&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 220px;                 max-width: 280px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     📺 VIDEO MÁS VISTO · United States                 &lt;/div&gt;                 &lt;div style=&quot;font-size:13px; font-weight:bold; margin-bottom:8px; line-height:1.3; color:#E8EDF5;&quot;&gt;                     Childish Gambino - This Is America (Official Video)                 &lt;/div&gt;                 &lt;div style=&quot;font-size:11px; color:#5A6A7E; margin-bottom:4px;&quot;&gt;                     🎙 ChildishGambinoVEVO                 &lt;/div&gt;                 &lt;div style=&quot;font-size:12px; color:#0AF5B0; font-weight:bold;&quot;&gt;                     👁 225,211,923 vistas                 &lt;/div&gt;                 &lt;div style=&quot;margin-top:8px;&quot;&gt;                     &lt;a href=&quot;https://www.youtube.com/watch?v=VYOjWnS4cMY&quot;                        target=&quot;_blank&quot;                        style=&quot;                            display:inline-block;                            background:#FF3B30;                            color:white;                            padding:4px 10px;                            border-radius:4px;                            font-size:10px;                            text-decoration:none;                            letter-spacing:1px;                        &quot;&gt;                         ▶ VER EN YOUTUBE                     &lt;/a&gt;                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_a4aadec1b945c23fcabee237bf13813b.setContent(html_18b727a4ed17f8a4486a3fed7c9cd660);
-            
-        
-
-        circle_marker_1f5dc7cf92efb1e3f63d2998c8e90afa.bindPopup(popup_a4aadec1b945c23fcabee237bf13813b)
-        ;
-
-        
-    
-    
-            circle_marker_1f5dc7cf92efb1e3f63d2998c8e90afa.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#FF3B30&#x27;&gt;United States&lt;/b&gt;&lt;br&gt;📺 Childish Gambino - This Is America (Offi...
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            feature_group_a68422f32ce3f35d5a7c27291526c676.addTo(map_ab29283ed043076bf6193be49466c047);
-        
-    
-            var feature_group_cd3ad247a72c5149efd302a7695b44a3 = L.featureGroup(
-                {
-}
-            );
-        
-    
-            var circle_marker_97140f2d1023faa9b62f8f2c6fdf3f72 = L.circleMarker(
-                [57.6304, -104.8468],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_83176a721afb45d724d1c9cb9ea9f342 = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_417de0bf0cca11fe64bc4ec9289a43af = $(`&lt;div id=&quot;html_417de0bf0cca11fe64bc4ec9289a43af&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · Canada                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_83176a721afb45d724d1c9cb9ea9f342.setContent(html_417de0bf0cca11fe64bc4ec9289a43af);
-            
-        
-
-        circle_marker_97140f2d1023faa9b62f8f2c6fdf3f72.bindPopup(popup_83176a721afb45d724d1c9cb9ea9f342)
-        ;
-
-        
-    
-    
-            circle_marker_97140f2d1023faa9b62f8f2c6fdf3f72.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;Canada&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_f7002d1753f5da0963003b2dddba3a03 = L.circleMarker(
-                [52.6657, 11.9515],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_3ca2e84b59dd6f5983edd17288065705 = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_7e87c8d06063c5bc4ba6e0a291a303cf = $(`&lt;div id=&quot;html_7e87c8d06063c5bc4ba6e0a291a303cf&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · Germany                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_3ca2e84b59dd6f5983edd17288065705.setContent(html_7e87c8d06063c5bc4ba6e0a291a303cf);
-            
-        
-
-        circle_marker_f7002d1753f5da0963003b2dddba3a03.bindPopup(popup_3ca2e84b59dd6f5983edd17288065705)
-        ;
-
-        
-    
-    
-            circle_marker_f7002d1753f5da0963003b2dddba3a03.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;Germany&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_d7bf8502afe05fd56b083acad1311aa7 = L.circleMarker(
-                [47.7276, 3.7137],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_af4694b5cd2600cd55f030214ccd2d2f = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_9f6cb97351571929661cbb9147ff80bf = $(`&lt;div id=&quot;html_9f6cb97351571929661cbb9147ff80bf&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · France                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_af4694b5cd2600cd55f030214ccd2d2f.setContent(html_9f6cb97351571929661cbb9147ff80bf);
-            
-        
-
-        circle_marker_d7bf8502afe05fd56b083acad1311aa7.bindPopup(popup_af4694b5cd2600cd55f030214ccd2d2f)
-        ;
-
-        
-    
-    
-            circle_marker_d7bf8502afe05fd56b083acad1311aa7.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;France&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_80d7682a288913f35e3501ce0801337a = L.circleMarker(
-                [56.8781, -1.936],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_01a5cef4c2e40fbc93b9046c9a3997d8 = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_db1b000be72501c87b76ad230a5f3fcc = $(`&lt;div id=&quot;html_db1b000be72501c87b76ad230a5f3fcc&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · United Kingdom                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_01a5cef4c2e40fbc93b9046c9a3997d8.setContent(html_db1b000be72501c87b76ad230a5f3fcc);
-            
-        
-
-        circle_marker_80d7682a288913f35e3501ce0801337a.bindPopup(popup_01a5cef4c2e40fbc93b9046c9a3997d8)
-        ;
-
-        
-    
-    
-            circle_marker_80d7682a288913f35e3501ce0801337a.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;United Kingdom&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_687082408cd5c74804e650c18081a296 = L.circleMarker(
-                [22.0937, 80.4629],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_ce07803069ab47f4031a50c3c8c560db = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_ad42f5a5779c8f506fbcf0039cb9e656 = $(`&lt;div id=&quot;html_ad42f5a5779c8f506fbcf0039cb9e656&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · India                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Entertainment                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_ce07803069ab47f4031a50c3c8c560db.setContent(html_ad42f5a5779c8f506fbcf0039cb9e656);
-            
-        
-
-        circle_marker_687082408cd5c74804e650c18081a296.bindPopup(popup_ce07803069ab47f4031a50c3c8c560db)
-        ;
-
-        
-    
-    
-            circle_marker_687082408cd5c74804e650c18081a296.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;India&lt;/b&gt;&lt;br&gt;🎯 Entertainment
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_7ebae0153b8da3a32dd05a7e51b508a0 = L.circleMarker(
-                [37.7048, 139.7529],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_23626631e447f2d1685d9c35a7ebbebd = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_5ca64974b5c7e7f70e3158e9e7ec77b9 = $(`&lt;div id=&quot;html_5ca64974b5c7e7f70e3158e9e7ec77b9&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · Japan                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_23626631e447f2d1685d9c35a7ebbebd.setContent(html_5ca64974b5c7e7f70e3158e9e7ec77b9);
-            
-        
-
-        circle_marker_7ebae0153b8da3a32dd05a7e51b508a0.bindPopup(popup_23626631e447f2d1685d9c35a7ebbebd)
-        ;
-
-        
-    
-    
-            circle_marker_7ebae0153b8da3a32dd05a7e51b508a0.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;Japan&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_db370da72c32de3eb8f14441fb14a2d6 = L.circleMarker(
-                [37.4078, 129.26690000000002],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_ccba70d7ba302beb1026fff122aa5f3c = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_22cd7479afee33945a57f8c9bacff484 = $(`&lt;div id=&quot;html_22cd7479afee33945a57f8c9bacff484&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · South Korea                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_ccba70d7ba302beb1026fff122aa5f3c.setContent(html_22cd7479afee33945a57f8c9bacff484);
-            
-        
-
-        circle_marker_db370da72c32de3eb8f14441fb14a2d6.bindPopup(popup_ccba70d7ba302beb1026fff122aa5f3c)
-        ;
-
-        
-    
-    
-            circle_marker_db370da72c32de3eb8f14441fb14a2d6.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;South Korea&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_2878dfd135a5ca4b16c818ab6bb4c1da = L.circleMarker(
-                [25.1345, -101.0528],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_073da8e243f18e8e060a098406787d20 = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_524026a25858c392073fea069ac9435d = $(`&lt;div id=&quot;html_524026a25858c392073fea069ac9435d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · Mexico                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_073da8e243f18e8e060a098406787d20.setContent(html_524026a25858c392073fea069ac9435d);
-            
-        
-
-        circle_marker_2878dfd135a5ca4b16c818ab6bb4c1da.bindPopup(popup_073da8e243f18e8e060a098406787d20)
-        ;
-
-        
-    
-    
-            circle_marker_2878dfd135a5ca4b16c818ab6bb4c1da.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;Mexico&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_8129bcc037e6924fb35d79d7d0fe3c97 = L.circleMarker(
-                [63.024, 106.8188],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_99eb41df5328fab6c786501ca88eff1a = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_d1ba6bcc8a41042e9cb4dd508e414e39 = $(`&lt;div id=&quot;html_d1ba6bcc8a41042e9cb4dd508e414e39&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · Russia                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_99eb41df5328fab6c786501ca88eff1a.setContent(html_d1ba6bcc8a41042e9cb4dd508e414e39);
-            
-        
-
-        circle_marker_8129bcc037e6924fb35d79d7d0fe3c97.bindPopup(popup_99eb41df5328fab6c786501ca88eff1a)
-        ;
-
-        
-    
-    
-            circle_marker_8129bcc037e6924fb35d79d7d0fe3c97.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;Russia&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            var circle_marker_54f1fa2d2c2fcd8693b99735bd61ea98 = L.circleMarker(
-                [38.5902, -94.2129],
-                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0AF5B0&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;#0AF5B0&quot;, &quot;fillOpacity&quot;: 0.85, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 10, &quot;stroke&quot;: true, &quot;weight&quot;: 2}
-            ).addTo(feature_group_cd3ad247a72c5149efd302a7695b44a3);
-        
-    
-        var popup_09f61e4e90544f63afb5e5a9a3210486 = L.popup({
-  &quot;maxWidth&quot;: 250,
-});
-
-        
-            
-                var html_8030e82b846a94d68faca1d267de2073 = $(`&lt;div id=&quot;html_8030e82b846a94d68faca1d267de2073&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;             &lt;div style=&quot;                 font-family: &#x27;Segoe UI&#x27;, sans-serif;                 min-width: 200px;                 background: #0D1421;                 color: #E8EDF5;                 border-radius: 8px;                 padding: 12px;                 border: 1px solid #1C2A3A;             &quot;&gt;                 &lt;div style=&quot;color:#0AF5B0; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;&quot;&gt;                     🎯 CATEGORÍA MÁS VISTA · United States                 &lt;/div&gt;                 &lt;div style=&quot;font-size:18px; font-weight:bold; color:#FFC200;&quot;&gt;                     Music                 &lt;/div&gt;             &lt;/div&gt;             &lt;/div&gt;`)[0];
-                popup_09f61e4e90544f63afb5e5a9a3210486.setContent(html_8030e82b846a94d68faca1d267de2073);
-            
-        
-
-        circle_marker_54f1fa2d2c2fcd8693b99735bd61ea98.bindPopup(popup_09f61e4e90544f63afb5e5a9a3210486)
-        ;
-
-        
-    
-    
-            circle_marker_54f1fa2d2c2fcd8693b99735bd61ea98.bindTooltip(
-                `&lt;div&gt;
-                     &lt;b style=&#x27;color:#0AF5B0&#x27;&gt;United States&lt;/b&gt;&lt;br&gt;🎯 Music
-                 &lt;/div&gt;`,
-                {
-  &quot;sticky&quot;: true,
-}
-            );
-        
-    
-            feature_group_cd3ad247a72c5149efd302a7695b44a3.addTo(map_ab29283ed043076bf6193be49466c047);
-        
-    
-            var layer_control_46fd7c4cbfa749d85c4552f874d1e298_layers = {
-                base_layers : {
-                    &quot;Dark&quot; : tile_layer_e3a918c6cb5c3d36ff57bf7fba0f5dcb,
-                },
-                overlays :  {
-                    &quot;\ud83d\udcfa Video m\u00e1s visto&quot; : feature_group_a68422f32ce3f35d5a7c27291526c676,
-                    &quot;\ud83c\udfaf Categor\u00eda m\u00e1s vista&quot; : feature_group_cd3ad247a72c5149efd302a7695b44a3,
-                },
-            };
-            let layer_control_46fd7c4cbfa749d85c4552f874d1e298 = L.control.layers(
-                layer_control_46fd7c4cbfa749d85c4552f874d1e298_layers.base_layers,
-                layer_control_46fd7c4cbfa749d85c4552f874d1e298_layers.overlays,
-                {
-  &quot;position&quot;: &quot;topright&quot;,
-  &quot;collapsed&quot;: false,
-  &quot;autoZIndex&quot;: true,
-}
-            ).addTo(map_ab29283ed043076bf6193be49466c047);
-
-        
-&lt;/script&gt;
-&lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div>
+    <iframe src="geo_map_inner.html" class="map-frame"></iframe>
+
+    <div class="note">
+        Cada marcador resume un país. El color representa la polaridad del público y el tamaño indica el volumen total de vistas.
+    </div>
 </div>
 
 </body>

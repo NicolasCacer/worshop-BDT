@@ -38,7 +38,10 @@ CHART_LAYOUT = dict(
 AXIS_STYLE = dict(
     gridcolor=COLORS['border'],
     zerolinecolor=COLORS['border'],
-    tickfont=dict(size=12),
+    tickfont=dict(size=16),
+    ticklabelposition="outside",
+    ticklabelstandoff=10,
+    automargin=True
 )
 
 CATEGORY_COLORS = [
@@ -206,7 +209,7 @@ def fig_categories_by_country(df):
 
     fig.update_layout(
         **CHART_LAYOUT,
-        title='🗂  CATEGORÍAS POR PAÍS — COMPARACIÓN JSON',
+        title='🗂  CATEGORÍAS POR PAÍS',
         height=540,
         xaxis=dict(**AXIS_STYLE, tickangle=-35),
         yaxis=dict(**AXIS_STYLE),
@@ -294,9 +297,9 @@ def fig_interaction_by_category(df):
 
     fig = make_subplots(
         rows=1, cols=2,
-        column_widths=[0.55, 0.45],
+        column_widths=[0.40, 0.40],
         subplot_titles=['VISTAS POR CATEGORÍA', 'POLARIDAD % POR CATEGORÍA'],
-        horizontal_spacing=0.1
+        horizontal_spacing=0.15
     )
 
     agg_sorted = agg.sort_values('views_M', ascending=True)
@@ -322,7 +325,8 @@ def fig_interaction_by_category(df):
         orientation='h',
         marker=dict(color=pol_colors2, opacity=0.9, line=dict(width=0)),
         text=[f"{v:+.1f}%" for v in agg_pol['polarity_pct']],
-        textposition='outside',
+        textposition='auto',
+        cliponaxis=False,
         textfont=dict(size=11),
         hovertemplate='%{y}<br>Polaridad: %{x:+.1f}%<extra></extra>',
         showlegend=False
