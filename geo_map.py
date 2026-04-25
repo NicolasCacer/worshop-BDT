@@ -76,6 +76,7 @@ def get_country_stats(df):
             'top_video_views':   int(top_video_row['views']),
             'top_video_channel': top_video_row['channel_title'],
             'top_video_id':      top_video_row['video_id'],
+            'thumbnail_link':    top_video_row.get('thumbnail_link', ''),
             'top_category':      top_category,
             'total_views':       int(total_views),
             'total_likes':       int(total_likes),
@@ -91,6 +92,111 @@ def get_country_stats(df):
 # =========================================================================================
 #      Construir mapa Folium
 # =========================================================================================
+
+def build_popup_html(country_name, info, polarity_color, polarity_label):
+    video_url = f"https://www.youtube.com/watch?v={info['top_video_id']}"
+    video_id = info['top_video_id']
+    thumbnail = f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg"
+
+    thumbnail_html = ""
+    if thumbnail:
+        thumbnail_html = f"""
+        <a href="{video_url}" target="_blank" title="Ver video top en YouTube">
+            <img src="{thumbnail}"
+                 style="
+                     width:100%;
+                     max-height:170px;
+                     object-fit:cover;
+                     border-radius:10px;
+                     margin:10px 0 12px;
+                     border:1px solid #1C2A3A;
+                     display:block;
+                 ">
+        </a>
+        """
+
+    return f"""
+    <div style="
+        font-family:'Segoe UI', sans-serif;
+        min-width:280px;
+        max-width:340px;
+        background:#0D1421;
+        color:#E8EDF5;
+        border-radius:12px;
+        padding:15px;
+        border:1px solid #1C2A3A;
+        box-shadow:0 8px 24px rgba(0,0,0,0.35);
+    ">
+        <div style="font-size:18px; font-weight:700; margin-bottom:4px;">
+            🌍 {country_name}
+        </div>
+
+        <div style="
+            font-size:10px;
+            color:#9BAABD;
+            letter-spacing:2px;
+            text-transform:uppercase;
+            margin-bottom:10px;
+        ">
+            {info['videos']} videos únicos · {fmt_number(info['total_views'])} vistas totales
+        </div>
+
+        {thumbnail_html}
+
+        <div style="color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase;">
+            📺 Video más visto
+        </div>
+
+        <div style="font-size:13px; font-weight:600; line-height:1.35; margin:5px 0 6px;">
+            {truncate(info['top_video_title'], 80)}
+        </div>
+
+        <div style="font-size:11px; color:#9BAABD;">
+            🎙 {truncate(info['top_video_channel'], 45)}
+        </div>
+
+        <div style="font-size:12px; color:#00F5B8; font-weight:bold; margin-top:4px;">
+            👁 {fmt_number(info['top_video_views'])} vistas
+        </div>
+
+        <hr style="border:none; border-top:1px solid #1C2A3A; margin:10px 0;">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+                <div style="color:#00F5B8; font-size:10px; letter-spacing:1px; text-transform:uppercase;">
+                    Categoría dominante
+                </div>
+                <div style="font-size:14px; font-weight:bold; color:#FFD166; margin-top:4px;">
+                    {info['top_category']}
+                </div>
+            </div>
+
+            <div>
+                <div style="color:{polarity_color}; font-size:10px; letter-spacing:1px; text-transform:uppercase;">
+                    Polaridad
+                </div>
+                <div style="font-size:18px; font-weight:bold; color:{polarity_color}; margin-top:2px;">
+                    {info['polarity_pct']:+.1f}%
+                </div>
+                <div style="font-size:10px; color:#9BAABD;">
+                    {polarity_label}
+                </div>
+            </div>
+        </div>
+
+        <div style="
+            margin-top:12px;
+            padding:9px;
+            border-radius:8px;
+            background:rgba(255,255,255,0.04);
+            font-size:11px;
+            line-height:1.6;
+        ">
+            👍 Likes: {fmt_number(info['total_likes'])}<br>
+            👎 Dislikes: {fmt_number(info['total_dislikes'])}<br>
+        </div>
+    </div>
+    """
 
 def build_map(stats):
     m = folium.Map(
@@ -125,110 +231,7 @@ def build_map(stats):
         radius = 9 + 18 * math.sqrt(info['total_views'] / max_views)
 
         popup = folium.Popup(
-            f"""
-            <div style="
-                font-family: 'Segoe UI', sans-serif;
-                min-width: 280px;
-                max-width: 340px;
-                background: #0D1421;
-                color: #E8EDF5;
-                border-radius: 12px;
-                padding: 15px;
-                border: 1px solid #1C2A3A;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-            ">
-                <div style="
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #E8EDF5;
-                    margin-bottom: 4px;
-                ">
-                    🌍 {country_name}
-                </div>
-
-                <div style="
-                    font-size: 10px;
-                    color: #9BAABD;
-                    letter-spacing: 2px;
-                    text-transform: uppercase;
-                    margin-bottom: 10px;
-                ">
-                    {info['videos']} videos únicos · {fmt_number(info['total_views'])} vistas totales
-                </div>
-
-                <hr style="border: none; border-top: 1px solid #1C2A3A; margin: 10px 0;">
-
-                <div style="color:#FF3B30; font-size:10px; letter-spacing:2px; text-transform:uppercase;">
-                    📺 Video más visto
-                </div>
-                <div style="font-size:13px; font-weight:600; line-height:1.35; margin:5px 0 6px;">
-                    {truncate(info['top_video_title'], 80)}
-                </div>
-                <div style="font-size:11px; color:#9BAABD;">
-                    🎙 {truncate(info['top_video_channel'], 45)}
-                </div>
-                <div style="font-size:12px; color:#00F5B8; font-weight:bold; margin-top:4px;">
-                    👁 {fmt_number(info['top_video_views'])} vistas
-                </div>
-
-                <hr style="border: none; border-top: 1px solid #1C2A3A; margin: 10px 0;">
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div>
-                        <div style="color:#00F5B8; font-size:10px; letter-spacing:1px; text-transform:uppercase;">
-                            Categoría dominante
-                        </div>
-                        <div style="font-size:14px; font-weight:bold; color:#FFD166; margin-top:4px;">
-                            {info['top_category']}
-                        </div>
-                    </div>
-
-                    <div>
-                        <div style="color:{polarity_color}; font-size:10px; letter-spacing:1px; text-transform:uppercase;">
-                            Polaridad
-                        </div>
-                        <div style="font-size:18px; font-weight:bold; color:{polarity_color}; margin-top:2px;">
-                            {info['polarity_pct']:+.1f}%
-                        </div>
-                        <div style="font-size:10px; color:#9BAABD;">
-                            {polarity_label}
-                        </div>
-                    </div>
-                </div>
-
-                <div style="
-                    margin-top: 12px;
-                    padding: 9px;
-                    border-radius: 8px;
-                    background: rgba(255,255,255,0.04);
-                    font-size: 11px;
-                    line-height: 1.6;
-                    color: #E8EDF5;
-                ">
-                    👍 Likes: {fmt_number(info['total_likes'])}<br>
-                    👎 Dislikes: {fmt_number(info['total_dislikes'])}<br>
-                    Fórmula polaridad: (likes − dislikes) / (likes + dislikes)
-                </div>
-
-                <div style="margin-top:12px;">
-                    <a href="https://www.youtube.com/watch?v={info['top_video_id']}"
-                       target="_blank"
-                       style="
-                           display:inline-block;
-                           background:#FF3B30;
-                           color:white;
-                           padding:7px 12px;
-                           border-radius:6px;
-                           font-size:10px;
-                           text-decoration:none;
-                           letter-spacing:1px;
-                           font-weight:bold;
-                       ">
-                        ▶ VER VIDEO TOP
-                    </a>
-                </div>
-            </div>
-            """,
+            build_popup_html(country_name, info, polarity_color, polarity_label),
             max_width=360
         )
 

@@ -228,46 +228,68 @@ def fig_interaction_by_zone(df):
         likes=('likes', 'sum'),
         dislikes=('dislikes', 'sum')
     ).reset_index()
-    agg['polarity']   = agg['likes'] - agg['dislikes']
-    agg['polarity_M'] = agg['polarity'] / 1_000_000
-    agg['views_M']    = agg['views']    / 1_000_000
-    agg['likes_M']    = agg['likes']    / 1_000_000
+
+    agg['polarity'] = agg['likes'] - agg['dislikes']
+    agg['polarity_pct'] = (
+        agg['polarity'] / (agg['likes'] + agg['dislikes']) * 100
+    ).round(2)
+
+    agg['views_M'] = agg['views'] / 1_000_000
+    agg['likes_M'] = agg['likes'] / 1_000_000
     agg['dislikes_M'] = agg['dislikes'] / 1_000_000
-    agg = agg.sort_values('views_M', ascending=False)
+
+    agg_views = agg.sort_values('views_M', ascending=False)
+    agg_pol   = agg.sort_values('polarity_pct', ascending=False)
 
     fig = make_subplots(
         rows=1, cols=2,
         column_widths=[0.62, 0.38],
-        subplot_titles=['VISTAS · LIKES · DISLIKES POR ZONA', 'POLARIDAD NETA (Likes − Dislikes)'],
+        subplot_titles=[
+            'VISTAS · LIKES · DISLIKES POR ZONA',
+            'POLARIDAD PORCENTUAL POR ZONA'
+        ],
         horizontal_spacing=0.08
     )
 
     metrics = [
-        ('views_M',    COLORS['accent2'], 'Vistas (M)'),
-        ('likes_M',    COLORS['accent3'], 'Likes (M)'),
-        ('dislikes_M', COLORS['accent'],  'Dislikes (M)'),
+        ('views_M', COLORS['accent2'], 'Vistas (M)'),
+        ('likes_M', COLORS['accent3'], 'Likes (M)'),
+        ('dislikes_M', COLORS['accent'], 'Dislikes (M)'),
     ]
 
     for col_name, color, label in metrics:
         fig.add_trace(go.Bar(
             name=label,
-            x=agg['country'],
-            y=agg[col_name],
+            x=agg_views['country'],
+            y=agg_views[col_name],
             marker=dict(color=color, opacity=0.85, line=dict(width=0)),
             hovertemplate=f'{label}: %{{y:.2f}}M<extra></extra>'
         ), row=1, col=1)
 
-    pol_colors = [COLORS['positive'] if v >= 0 else COLORS['negative'] for v in agg['polarity_M']]
+    pol_colors = [
+        COLORS['positive'] if v >= 0 else COLORS['negative']
+        for v in agg['polarity_pct']
+    ]
+
     fig.add_trace(go.Bar(
-        name='Polaridad',
-        x=agg['country'],
-        y=agg['polarity_M'],
+        name='Polaridad (%)',
+        x=agg_pol['country'],
+        y=agg_pol['polarity_pct'],
         marker=dict(color=pol_colors, opacity=0.9, line=dict(width=0)),
-        hovertemplate='Polaridad: %{y:.2f}M<extra></extra>',
+        text=[f"{v:+.1f}%" for v in agg_pol['polarity_pct']],
+        textposition='auto',
+        hovertemplate='Polaridad: %{y:+.2f}%<extra></extra>',
         showlegend=False
     ), row=1, col=2)
 
-    fig.add_hline(y=0, line_dash='dot', line_color=COLORS['muted'], opacity=0.6, row=1, col=2)
+    fig.add_hline(
+        y=0,
+        line_dash='dot',
+        line_color=COLORS['muted'],
+        opacity=0.6,
+        row=1,
+        col=2
+    )
 
     fig.update_layout(
         **CHART_LAYOUT,
@@ -275,10 +297,18 @@ def fig_interaction_by_zone(df):
         barmode='group',
         height=520,
     )
+
     fig.update_xaxes(**AXIS_STYLE)
     fig.update_yaxes(**AXIS_STYLE)
+    fig.update_yaxes(title_text='Interacciones (Millones)', row=1, col=1)
+    fig.update_yaxes(title_text='Polaridad (%)', row=1, col=2)
+
     for ann in fig.layout.annotations:
-        ann.font = dict(family='Bebas Neue, sans-serif', size=16, color=COLORS['muted'])
+        ann.font = dict(
+            family='Bebas Neue, sans-serif',
+            size=16,
+            color=COLORS['muted']
+        )
 
     return fig
 
